@@ -15,6 +15,23 @@ from typing import Dict, List, Optional, Sequence
 import numpy as np
 
 
+def validate_embeddings(embeddings: np.ndarray, source: str) -> None:
+    """Reject non-finite external embeddings before normalization or ranking.
+
+    Validate embeddings at the input boundary, not similarity scores: ranking
+    deliberately uses -inf to exclude candidates.
+    """
+    if not np.isfinite(embeddings).all():
+        nan_count = np.count_nonzero(np.isnan(embeddings))
+        posinf_count = np.count_nonzero(np.isposinf(embeddings))
+        neginf_count = np.count_nonzero(np.isneginf(embeddings))
+        raise ValueError(
+            f"Array 'embeddings' in '{source}' contains non-finite values "
+            f"(NaN={nan_count}, +inf={posinf_count}, -inf={neginf_count}). "
+            "Repair or regenerate the embedding file before evaluation."
+        )
+
+
 def l2norm(x: np.ndarray, axis: int = -1, eps: float = 1e-9) -> np.ndarray:
     """
     L2 normalize array along specified axis.
