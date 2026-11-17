@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from AudioRetrieval.evaluation.metrics import (
+    validate_embeddings,
     l2norm,
     cosine_sim,
     ranks_from_scores,
@@ -57,6 +58,7 @@ class PrecomputedEmbeddingRunner:
         """Lazy-load audio embeddings."""
         if self._audio_data is None:
             data = np.load(self.audio_embeddings_path, allow_pickle=True)
+            validate_embeddings(data["embeddings"], str(self.audio_embeddings_path))
             self._audio_data = {
                 "embeddings": data["embeddings"],
                 "clip_ids": list(data.get("clip_ids", [])),
@@ -69,6 +71,7 @@ class PrecomputedEmbeddingRunner:
         """Lazy-load caption embeddings."""
         if self._caption_data is None and self.caption_embeddings_path:
             data = np.load(self.caption_embeddings_path, allow_pickle=True)
+            validate_embeddings(data["embeddings"], str(self.caption_embeddings_path))
             self._caption_data = {
                 "embeddings": data["embeddings"],
                 "texts": list(data.get("texts", [])),
@@ -93,6 +96,7 @@ class PrecomputedEmbeddingRunner:
             path = self.uiq_embeddings_dir / name
             if path.exists():
                 data = np.load(path, allow_pickle=True)
+                validate_embeddings(data["embeddings"], str(path))
                 return {
                     "embeddings": data["embeddings"],
                     "texts": list(data.get("texts", [])),
